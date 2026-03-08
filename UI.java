@@ -1,5 +1,5 @@
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
+import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
@@ -7,20 +7,16 @@ import java.util.List;
 
 /**
  * Main Checkers application with graphical UI.
- * Contains game state, board rendering, and integration with algorithm modules.
- * UI design must NOT be changed - only backend logic should be modified.
  */
 public class UI extends JFrame {
 
-    // Game constants
     public static final int BOARD_SIZE = 8;
-    public static final int P1 = 1;       // White (Human)
+    public static final int P1 = 1;
     public static final int P1_KING = 2;
-    public static final int P2 = -1;      // Red/Black (AI)
+    public static final int P2 = -1;
     public static final int P2_KING = -2;
     public static final int EMPTY = 0;
 
-    // Difficulty modes - must match UI options
     public static final String GREEDY = "Greedy";
     public static final String DIVIDE_AND_CONQUER = "Divide and Conquer";
     public static final String BACKTRACKING = "Backtracking";
@@ -30,99 +26,149 @@ public class UI extends JFrame {
     private String selectedMode = GREEDY;
     private int selectedRow = -1, selectedCol = -1;
     private JPanel boardPanel;
-    private JPanel rightPanel;
-    private JTextArea moveHistoryArea;
     private JButton[] diffButtons;
     private JButton undoButton;
+    private JTextArea moveHistoryArea;
     private boolean gameOver = false;
-    private static final int SQUARE_SIZE = 72;
+    private static final int SQUARE_SIZE = 80;
     private List<GameState> stateHistory = new ArrayList<>();
+
+    private static final Color BG_DARK = new Color(0x2c2c2c);
+    private static final Color BG_PANEL = new Color(0x3a3a3a);
+    private static final Color BG_CARD = new Color(0x404040);
+    private static final Color SUCCESS = new Color(0x4a7c4e);
+    private static final Color TEXT_PRIMARY = new Color(0xf5f5f5);
+    private static final Color TEXT_MUTED = new Color(0xaaaaaa);
+    private static final Color DARK_SQ = new Color(0x8b4513);
+    private static final Color LIGHT_SQ = new Color(0xdeb887);
+    private static final Color PIECE_RED = new Color(0xc41e3a);
+    private static final Color PIECE_BLACK = new Color(0x1a1a1a);
+    private static final Color KING_GOLD = new Color(0xd4af37);
+    private static final Color BOARD_BORDER = new Color(0x2d5a27);
 
     public UI() {
         setTitle("Checkers - DAA Project");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
-        getContentPane().setBackground(new Color(0x1e1e1e));
+        getContentPane().setBackground(BG_DARK);
 
         gameState = new GameState();
 
-        // Left sidebar
-        JPanel sidebar = createSidebar();
-        add(sidebar, BorderLayout.WEST);
+        JPanel leftPanel = createLeftPanel();
+        add(leftPanel, BorderLayout.WEST);
 
-        // Center - Board (occupies main area, positioned for clear visibility)
-        JPanel mainContent = new JPanel(new BorderLayout());
-        mainContent.setBackground(new Color(0x121212));
-        mainContent.setBorder(new EmptyBorder(10, 10, 30, 10));
-        boardPanel = createBoardPanel();
-        JPanel boardWrapper = new JPanel(new GridBagLayout());
-        boardWrapper.setBackground(new Color(0x121212));
-        boardWrapper.add(boardPanel);
-        mainContent.add(boardWrapper, BorderLayout.SOUTH);
-        add(mainContent, BorderLayout.CENTER);
+        JPanel centerPanel = createCenterPanel();
+        add(centerPanel, BorderLayout.CENTER);
 
-        // Right panel - Difficulty and Move History
-        rightPanel = createRightPanel();
+        JPanel rightPanel = createRightPanel();
         add(rightPanel, BorderLayout.EAST);
 
-        setSize(1100, 750);
+        setSize(1200, 800);
         setLocationRelativeTo(null);
         setVisible(true);
     }
 
-    private JPanel createSidebar() {
-        JPanel sidebar = new JPanel();
-        sidebar.setPreferredSize(new Dimension(60, 0));
-        sidebar.setBackground(new Color(0x1e1e1e));
-        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
-        sidebar.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(0x333333)));
+    private JPanel createLeftPanel() {
+        JPanel panel = new JPanel();
+        panel.setPreferredSize(new Dimension(200, 0));
+        panel.setBackground(BG_DARK);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(new EmptyBorder(24, 24, 24, 0));
 
-        JLabel title = new JLabel("C");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        title.setForeground(Color.WHITE);
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
-        sidebar.add(Box.createVerticalStrut(20));
-        sidebar.add(title);
+        JLabel logo = new JLabel("CHECKERS");
+        logo.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        logo.setForeground(TEXT_PRIMARY);
+        logo.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(logo);
 
-        JLabel checkersLabel = new JLabel("Checkers");
-        checkersLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        checkersLabel.setForeground(Color.WHITE);
-        checkersLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        sidebar.add(checkersLabel);
-        sidebar.add(Box.createVerticalStrut(30));
+        panel.add(Box.createVerticalStrut(8));
 
-        return sidebar;
+        JLabel sub = new JLabel("DAA Project");
+        sub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        sub.setForeground(TEXT_MUTED);
+        sub.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(sub);
+
+        panel.add(Box.createVerticalStrut(40));
+
+        JLabel turnLabel = new JLabel("Turn");
+        turnLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        turnLabel.setForeground(TEXT_MUTED);
+        turnLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(turnLabel);
+
+        JPanel turnIndicator = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 4));
+        turnIndicator.setBackground(BG_DARK);
+        turnIndicator.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JPanel turnDot = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int s = 12;
+                g2.setColor(gameState.turn == P1 ? PIECE_RED : PIECE_BLACK);
+                g2.fillOval(0, 0, s, s);
+                if (gameOver) g2.setColor(TEXT_MUTED);
+            }
+        };
+        turnDot.setPreferredSize(new Dimension(12, 12));
+        turnDot.setOpaque(false);
+        turnDot.setBackground(BG_DARK);
+        turnIndicator.add(turnDot);
+        JLabel turnText = new JLabel("Your turn");
+        turnText.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        turnText.setForeground(TEXT_PRIMARY);
+        turnIndicator.add(turnText);
+        panel.add(turnIndicator);
+
+        panel.add(Box.createVerticalGlue());
+        return panel;
     }
 
-    private JPanel createBoardPanel() {
-        JPanel frame = new JPanel(new BorderLayout());
-        frame.setBackground(new Color(0x2d2d2d));
-        frame.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(0x769656), 2),
-            new EmptyBorder(10, 10, 10, 10)
+    private JPanel createCenterPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(BG_DARK);
+        panel.setBorder(new EmptyBorder(24, 24, 24, 24));
+
+        JPanel boardFrame = new JPanel(new BorderLayout());
+        boardFrame.setBackground(BOARD_BORDER);
+        boardFrame.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(BOARD_BORDER, 4),
+            new EmptyBorder(12, 12, 12, 12)
         ));
 
-        JPanel grid = new JPanel(new GridLayout(BOARD_SIZE, BOARD_SIZE));
         int boardPixels = BOARD_SIZE * SQUARE_SIZE;
+        JPanel grid = new JPanel(new GridLayout(BOARD_SIZE, BOARD_SIZE, 0, 0));
         grid.setPreferredSize(new Dimension(boardPixels, boardPixels));
-        grid.setBackground(new Color(0x769656));
+        grid.setMinimumSize(new Dimension(boardPixels, boardPixels));
+        grid.setBackground(DARK_SQ);
+        grid.setOpaque(true);
+
+        boardPanel = new JPanel(new BorderLayout());
+        boardPanel.setOpaque(true);
+        boardPanel.setBackground(BOARD_BORDER);
+        boardPanel.add(grid, BorderLayout.CENTER);
 
         for (int r = 0; r < BOARD_SIZE; r++) {
             for (int c = 0; c < BOARD_SIZE; c++) {
-                JPanel square = createSquare(r, c);
-                grid.add(square);
+                grid.add(createSquare(r, c));
             }
         }
-        frame.add(grid, BorderLayout.CENTER);
-        return frame;
+
+        boardFrame.add(boardPanel, BorderLayout.CENTER);
+        panel.add(boardFrame, BorderLayout.CENTER);
+        return panel;
     }
 
     private JPanel createSquare(int r, int c) {
         final int row = r, col = c;
+        boolean isDark = (r + c) % 2 != 0;
         JPanel square = new JPanel(new GridBagLayout());
         square.setPreferredSize(new Dimension(SQUARE_SIZE, SQUARE_SIZE));
-        boolean isDark = (r + c) % 2 != 0;
-        square.setBackground(isDark ? new Color(0x769656) : new Color(0xeeeed2));
+        square.setMinimumSize(new Dimension(SQUARE_SIZE, SQUARE_SIZE));
+        square.setBackground(isDark ? DARK_SQ : LIGHT_SQ);
+        square.setOpaque(true);
         square.setCursor(new Cursor(Cursor.HAND_CURSOR));
         square.addMouseListener(new MouseAdapter() {
             @Override
@@ -130,94 +176,119 @@ public class UI extends JFrame {
                 handleSquareClick(row, col);
             }
         });
-        square.setName("sq_" + r + "_" + c);
+
+        int piece = gameState.board[r][c];
+        if (piece != EMPTY) {
+            square.add(new CheckerPiece(piece));
+        }
         return square;
     }
 
     private JPanel createRightPanel() {
         JPanel panel = new JPanel();
-        panel.setPreferredSize(new Dimension(320, 0));
-        panel.setBackground(new Color(0x1e1e1e));
+        panel.setPreferredSize(new Dimension(300, 0));
+        panel.setBackground(BG_DARK);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, new Color(0x333333)));
+        panel.setBorder(new EmptyBorder(24, 24, 24, 24));
 
-        // Header
-        JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        header.setBackground(new Color(0x1e1e1e));
-        JLabel aiLabel = new JLabel("CPU Opponent");
-        aiLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        aiLabel.setForeground(Color.WHITE);
-        header.add(aiLabel);
-        panel.add(header);
-        panel.add(Box.createVerticalStrut(10));
+        JLabel cpuLabel = new JLabel("CPU Opponent");
+        cpuLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        cpuLabel.setForeground(TEXT_PRIMARY);
+        cpuLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(cpuLabel);
+        panel.add(Box.createVerticalStrut(12));
 
-        // Difficulty section
         JLabel diffLabel = new JLabel("Difficulty");
-        diffLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        diffLabel.setForeground(new Color(0xa3a3a3));
+        diffLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        diffLabel.setForeground(TEXT_MUTED);
         diffLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(diffLabel);
-        panel.add(Box.createVerticalStrut(5));
+        panel.add(Box.createVerticalStrut(8));
 
-        JPanel diffPanel = new JPanel(new GridLayout(2, 2, 5, 5));
-        diffPanel.setBackground(new Color(0x1e1e1e));
+        JPanel diffPanel = new JPanel(new GridLayout(2, 2, 8, 8));
+        diffPanel.setBackground(BG_DARK);
         String[] modes = { GREEDY, DIVIDE_AND_CONQUER, BACKTRACKING, DYNAMIC_PROGRAMMING };
         diffButtons = new JButton[4];
         for (int i = 0; i < modes.length; i++) {
             final String mode = modes[i];
-            JButton btn = new JButton(mode);
-            btn.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-            btn.setBackground(selectedMode.equals(mode) ? new Color(0x769656) : new Color(0x2d2d2d));
-            btn.setForeground(Color.WHITE);
-            btn.setBorder(BorderFactory.createLineBorder(new Color(0x444444)));
-            btn.setFocusPainted(false);
+            JButton btn = createDiffButton(mode);
             btn.addActionListener(e -> selectDifficulty(mode));
             diffButtons[i] = btn;
             diffPanel.add(btn);
         }
         panel.add(diffPanel);
-        panel.add(Box.createVerticalStrut(20));
+        panel.add(Box.createVerticalStrut(24));
 
-        // Move History
         JLabel histLabel = new JLabel("Move History");
-        histLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        histLabel.setForeground(new Color(0xa3a3a3));
+        histLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        histLabel.setForeground(TEXT_MUTED);
         histLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(histLabel);
-        panel.add(Box.createVerticalStrut(5));
+        panel.add(Box.createVerticalStrut(8));
 
-        moveHistoryArea = new JTextArea(15, 25);
+        JTextArea moveHistoryArea = new JTextArea(12, 22);
         moveHistoryArea.setEditable(false);
-        moveHistoryArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        moveHistoryArea.setBackground(new Color(0x2d2d2d));
-        moveHistoryArea.setForeground(Color.WHITE);
-        moveHistoryArea.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-        JScrollPane scrollPane = new JScrollPane(moveHistoryArea);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(0x444444)));
-        panel.add(scrollPane);
-        panel.add(Box.createVerticalStrut(15));
+        moveHistoryArea.setFont(new Font("Consolas", Font.PLAIN, 12));
+        moveHistoryArea.setBackground(BG_CARD);
+        moveHistoryArea.setForeground(TEXT_PRIMARY);
+        moveHistoryArea.setCaretColor(TEXT_PRIMARY);
+        moveHistoryArea.setBorder(new EmptyBorder(12, 12, 12, 12));
+        moveHistoryArea.setMargin(new Insets(8, 8, 8, 8));
+        JScrollPane scroll = new JScrollPane(moveHistoryArea);
+        scroll.setBorder(BorderFactory.createLineBorder(new Color(0x30363d), 1));
+        scroll.setBackground(BG_DARK);
+        panel.add(scroll);
+        panel.add(Box.createVerticalStrut(20));
 
-        // Undo and New Game buttons
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 8, 0));
-        buttonPanel.setBackground(new Color(0x1e1e1e));
-        undoButton = new JButton("Undo Move");
-        undoButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        undoButton.setBackground(new Color(0x2d2d2d));
-        undoButton.setForeground(Color.WHITE);
-        undoButton.setFocusPainted(false);
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        btnPanel.setBackground(BG_DARK);
+        undoButton = createStyledButton("Undo", false);
         undoButton.setEnabled(false);
         undoButton.addActionListener(e -> undoMove());
-        buttonPanel.add(undoButton);
-        JButton newGameBtn = new JButton("New Game");
-        newGameBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        newGameBtn.setBackground(new Color(0x769656));
-        newGameBtn.setForeground(Color.WHITE);
-        newGameBtn.setFocusPainted(false);
-        newGameBtn.addActionListener(e -> resetGame());
-        buttonPanel.add(newGameBtn);
-        panel.add(buttonPanel);
+        JButton newBtn = createStyledButton("New Game", true);
+        newBtn.addActionListener(e -> resetGame());
+        btnPanel.add(undoButton);
+        btnPanel.add(Box.createHorizontalStrut(8));
+        btnPanel.add(newBtn);
+        panel.add(btnPanel);
 
+        this.moveHistoryArea = moveHistoryArea;
         return panel;
+    }
+
+    private JButton createDiffButton(String mode) {
+        return createStyledButton(mode, () -> selectedMode.equals(mode));
+    }
+
+    private JButton createStyledButton(String text, boolean primary) {
+        return createStyledButton(text, () -> primary);
+    }
+
+    private JButton createStyledButton(String text, java.util.function.BooleanSupplier isPrimary) {
+        JButton btn = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                boolean primary = isPrimary.getAsBoolean();
+                Color bg = primary ? SUCCESS : BG_CARD;
+                if (getModel().isPressed()) bg = bg.darker();
+                else if (getModel().isRollover() && isEnabled()) bg = primary ? SUCCESS.brighter() : new Color(0x30363d);
+                g2.setColor(bg);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        btn.setForeground(TEXT_PRIMARY);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setContentAreaFilled(false);
+        btn.setOpaque(false);
+        btn.setBorder(new EmptyBorder(10, 16, 10, 16));
+        return btn;
     }
 
     private void selectDifficulty(String mode) {
@@ -232,10 +303,9 @@ public class UI extends JFrame {
 
     private void updateDifficultyButtons() {
         boolean locked = isGameInProgress();
-        String[] modes = { GREEDY, DIVIDE_AND_CONQUER, BACKTRACKING, DYNAMIC_PROGRAMMING };
-        for (int i = 0; i < diffButtons.length; i++) {
-            diffButtons[i].setEnabled(!locked);
-            diffButtons[i].setBackground(selectedMode.equals(modes[i]) ? new Color(0x769656) : new Color(0x2d2d2d));
+        for (JButton b : diffButtons) {
+            b.setEnabled(!locked);
+            b.repaint();
         }
     }
 
@@ -307,18 +377,14 @@ public class UI extends JFrame {
 
     private void scheduleAIMove() {
         if (gameOver || gameState.turn != P2) return;
-
         SwingUtilities.invokeLater(() -> {
-            try {
-                Thread.sleep(300);
-            } catch (InterruptedException ignored) {}
+            try { Thread.sleep(300); } catch (InterruptedException ignored) {}
             SwingUtilities.invokeLater(this::executeAIMove);
         });
     }
 
     private void executeAIMove() {
         if (gameOver || gameState.turn != P2) return;
-
         Move aiMove = getAIMove();
         if (aiMove != null) {
             applyMove(aiMove);
@@ -329,45 +395,41 @@ public class UI extends JFrame {
         repaintBoard();
     }
 
-    /**
-     * Calls the corresponding algorithm based on selected mode.
-     */
     private Move getAIMove() {
         switch (selectedMode) {
-            case GREEDY:
-                return Greedy.getBestMove(gameState);
-            case DIVIDE_AND_CONQUER:
-                return DivideAndConquer.getBestMove(gameState);
-            case BACKTRACKING:
-                return Backtracking.getBestMove(gameState);
-            case DYNAMIC_PROGRAMMING:
-                return DynamicProgramming.getBestMove(gameState);
-            default:
-                return Greedy.getBestMove(gameState);
+            case GREEDY: return Greedy.getBestMove(gameState);
+            case DIVIDE_AND_CONQUER: return DivideAndConquer.getBestMove(gameState);
+            case BACKTRACKING: return Backtracking.getBestMove(gameState);
+            case DYNAMIC_PROGRAMMING: return DynamicProgramming.getBestMove(gameState);
+            default: return Greedy.getBestMove(gameState);
         }
     }
 
     private void repaintBoard() {
-        if (boardPanel.getComponentCount() == 0) return;
-        JPanel grid = (JPanel) boardPanel.getComponent(0);
-        grid.removeAll();
-
-        for (int r = 0; r < BOARD_SIZE; r++) {
-            for (int c = 0; c < BOARD_SIZE; c++) {
-                JPanel square = createSquareWithPiece(r, c);
-                grid.add(square);
+        Component grid = null;
+        for (Component c : boardPanel.getComponents()) {
+            if (c instanceof JPanel) {
+                grid = c;
+                break;
             }
         }
-        grid.revalidate();
-        grid.repaint();
+        if (grid instanceof JPanel) {
+            JPanel g = (JPanel) grid;
+            g.removeAll();
+            for (int r = 0; r < BOARD_SIZE; r++) {
+                for (int c = 0; c < BOARD_SIZE; c++) {
+                    g.add(createSquareWithPiece(r, c));
+                }
+            }
+            g.revalidate();
+            g.repaint();
+        }
     }
 
     private JPanel createSquareWithPiece(int r, int c) {
         final int row = r, col = c;
-        JPanel square = new JPanel(new GridBagLayout());
-        square.setPreferredSize(new Dimension(SQUARE_SIZE, SQUARE_SIZE));
         boolean isDark = (r + c) % 2 != 0;
-        Color baseColor = isDark ? new Color(0x769656) : new Color(0xeeeed2);
+        Color base = isDark ? DARK_SQ : LIGHT_SQ;
 
         boolean isSelected = (selectedRow == r && selectedCol == c);
         boolean isValidDest = false;
@@ -381,10 +443,15 @@ public class UI extends JFrame {
             }
         }
 
-        if (isSelected) square.setBackground(new Color(255, 255, 100, 180));
-        else if (isValidDest) square.setBackground(new Color(255, 255, 150, 150));
-        else square.setBackground(baseColor);
-
+        JPanel square = new JPanel(new GridBagLayout());
+        square.setPreferredSize(new Dimension(SQUARE_SIZE, SQUARE_SIZE));
+        square.setMinimumSize(new Dimension(SQUARE_SIZE, SQUARE_SIZE));
+        if (isSelected) square.setBorder(BorderFactory.createLineBorder(new Color(255, 215, 0), 3));
+        else square.setBorder(null);
+        if (isSelected) square.setBackground(new Color(255, 255, 200));
+        else if (isValidDest) square.setBackground(new Color(200, 255, 200));
+        else square.setBackground(base);
+        square.setOpaque(true);
         square.setCursor(new Cursor(Cursor.HAND_CURSOR));
         square.addMouseListener(new MouseAdapter() {
             @Override
@@ -395,18 +462,17 @@ public class UI extends JFrame {
 
         int piece = gameState.board[r][c];
         if (piece != EMPTY) {
-            CirclePiece pieceComp = new CirclePiece(piece);
-            square.add(pieceComp);
+            square.add(new CheckerPiece(piece));
         }
         return square;
     }
 
-    private static class CirclePiece extends JComponent {
+    private static class CheckerPiece extends JComponent {
         private final int piece;
 
-        CirclePiece(int piece) {
+        CheckerPiece(int piece) {
             this.piece = piece;
-            setPreferredSize(new Dimension(SQUARE_SIZE - 12, SQUARE_SIZE - 12));
+            setPreferredSize(new Dimension(SQUARE_SIZE - 16, SQUARE_SIZE - 16));
         }
 
         @Override
@@ -414,23 +480,30 @@ public class UI extends JFrame {
             super.paintComponent(g);
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
             int w = getWidth();
             int h = getHeight();
             int size = Math.min(w, h);
             int x = (w - size) / 2;
             int y = (h - size) / 2;
 
-            boolean isWhite = piece == P1 || piece == P1_KING;
-            g2.setColor(isWhite ? new Color(0xf0f0f0) : new Color(0x2b2b2b));
-            g2.fillOval(x, y, size, size);
-            g2.setColor(isWhite ? Color.LIGHT_GRAY : Color.DARK_GRAY);
-            g2.drawOval(x, y, size, size);
+            boolean isRed = piece == P1 || piece == P1_KING;
+            Color fill = isRed ? PIECE_RED : PIECE_BLACK;
+            Color edge = isRed ? new Color(0xa01830) : new Color(0x333333);
+
+            GradientPaint gp = new GradientPaint(x, y, fill, x + size, y + size,
+                isRed ? new Color(0xe03040) : new Color(0x2a2a2a));
+            g2.setPaint(gp);
+            g2.fillOval(x + 2, y + 2, size - 4, size - 4);
+            g2.setColor(edge);
+            g2.setStroke(new BasicStroke(1.5f));
+            g2.drawOval(x + 2, y + 2, size - 4, size - 4);
 
             if (piece == P1_KING || piece == P2_KING) {
-                g2.setColor(new Color(0xffd700));
+                g2.setColor(KING_GOLD);
                 g2.setFont(new Font("Segoe UI", Font.BOLD, size / 2));
                 FontMetrics fm = g2.getFontMetrics();
-                String crown = "*";
+                String crown = "K";
                 int tx = x + (size - fm.stringWidth(crown)) / 2;
                 int ty = y + (size + fm.getAscent()) / 2 - fm.getDescent();
                 g2.drawString(crown, tx, ty);
@@ -479,8 +552,6 @@ public class UI extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new UI());
     }
-
-    // --- Game State and Move classes (shared with algorithms) ---
 
     public static class Move {
         public String type;
@@ -564,11 +635,8 @@ public class UI extends JFrame {
                     if (player == P2 && !isP2(piece)) continue;
 
                     List<Move> pieceJumps = getPieceJumpsFrom(r, c, piece);
-                    if (!pieceJumps.isEmpty()) {
-                        jumps.addAll(pieceJumps);
-                    } else if (jumps.isEmpty()) {
-                        steps.addAll(getPieceStepsFrom(r, c, piece));
-                    }
+                    if (!pieceJumps.isEmpty()) jumps.addAll(pieceJumps);
+                    else if (jumps.isEmpty()) steps.addAll(getPieceStepsFrom(r, c, piece));
                 }
             }
             return jumps.isEmpty() ? steps : jumps;
@@ -578,9 +646,8 @@ public class UI extends JFrame {
             List<Move> valid = new ArrayList<>();
             for (int[] d : getForwardDirs(piece)) {
                 int toR = fromR + d[0], toC = fromC + d[1];
-                if (inBounds(toR, toC) && board[toR][toC] == EMPTY) {
+                if (inBounds(toR, toC) && board[toR][toC] == EMPTY)
                     valid.add(new Move("step", fromR, fromC, toR, toC, null));
-                }
             }
             return valid;
         }
@@ -607,32 +674,21 @@ public class UI extends JFrame {
                     foundJump = true;
                     JumpPath newPath = path.extend(landR, landC, overR, overC);
                     boolean willCrown = (piece == P1 && landR == 0) || (piece == P2 && landR == BOARD_SIZE - 1);
-                    if (willCrown) {
-                        allJumps.add(newPath.toMove());
-                    } else {
-                        backtrackJumps(landR, landC, piece, newPath, allJumps);
-                    }
+                    if (willCrown) allJumps.add(newPath.toMove());
+                    else backtrackJumps(landR, landC, piece, newPath, allJumps);
                 }
             }
-            if (!foundJump && !path.captured.isEmpty()) {
-                allJumps.add(path.toMove());
-            }
+            if (!foundJump && !path.captured.isEmpty()) allJumps.add(path.toMove());
         }
 
         public GameState applyMove(Move move) {
             GameState next = clone();
             int piece = next.board[move.from.r][move.from.c];
-
             next.board[move.from.r][move.from.c] = EMPTY;
             next.board[move.to.r][move.to.c] = piece;
-
-            for (Cell cap : move.captured) {
-                next.board[cap.r][cap.c] = EMPTY;
-            }
-
+            for (Cell cap : move.captured) next.board[cap.r][cap.c] = EMPTY;
             if (piece == P1 && move.to.r == 0) next.board[move.to.r][move.to.c] = P1_KING;
             else if (piece == P2 && move.to.r == BOARD_SIZE - 1) next.board[move.to.r][move.to.c] = P2_KING;
-
             next.turn = (next.turn == P1) ? P2 : P1;
             next.history.add(move);
             return next;
