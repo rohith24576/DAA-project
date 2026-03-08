@@ -33,8 +33,10 @@ public class UI extends JFrame {
     private JPanel rightPanel;
     private JTextArea moveHistoryArea;
     private JButton[] diffButtons;
+    private JButton undoButton;
     private boolean gameOver = false;
     private static final int SQUARE_SIZE = 72;
+    private List<GameState> stateHistory = new ArrayList<>();
 
     public UI() {
         setTitle("Checkers - DAA Project");
@@ -195,14 +197,25 @@ public class UI extends JFrame {
         panel.add(scrollPane);
         panel.add(Box.createVerticalStrut(15));
 
-        // New Game button
+        // Undo and New Game buttons
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 8, 0));
+        buttonPanel.setBackground(new Color(0x1e1e1e));
+        undoButton = new JButton("Undo Move");
+        undoButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        undoButton.setBackground(new Color(0x2d2d2d));
+        undoButton.setForeground(Color.WHITE);
+        undoButton.setFocusPainted(false);
+        undoButton.setEnabled(false);
+        undoButton.addActionListener(e -> undoMove());
+        buttonPanel.add(undoButton);
         JButton newGameBtn = new JButton("New Game");
         newGameBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         newGameBtn.setBackground(new Color(0x769656));
         newGameBtn.setForeground(Color.WHITE);
         newGameBtn.setFocusPainted(false);
         newGameBtn.addActionListener(e -> resetGame());
-        panel.add(newGameBtn);
+        buttonPanel.add(newGameBtn);
+        panel.add(buttonPanel);
 
         return panel;
     }
@@ -267,9 +280,11 @@ public class UI extends JFrame {
     }
 
     private void applyMove(Move move) {
+        stateHistory.add(gameState);
         gameState = gameState.applyMove(move);
         appendMoveNotation(move);
         updateDifficultyButtons();
+        updateUndoButton();
         checkGameOver();
     }
 
@@ -423,13 +438,41 @@ public class UI extends JFrame {
         }
     }
 
+    private void undoMove() {
+        if (stateHistory.isEmpty()) return;
+        gameState = stateHistory.remove(stateHistory.size() - 1);
+        gameOver = false;
+        selectedRow = -1;
+        selectedCol = -1;
+        refreshMoveHistoryDisplay();
+        updateDifficultyButtons();
+        updateUndoButton();
+        repaintBoard();
+    }
+
+    private void refreshMoveHistoryDisplay() {
+        moveHistoryArea.setText("");
+        for (Move m : gameState.history) {
+            String fromStr = "" + (char) ('a' + m.from.c) + (8 - m.from.r);
+            String toStr = "" + (char) ('a' + m.to.c) + (8 - m.to.r);
+            String sep = m.type.equals("jump") ? "x" : "-";
+            moveHistoryArea.append(fromStr + sep + toStr + "\n");
+        }
+    }
+
+    private void updateUndoButton() {
+        undoButton.setEnabled(!stateHistory.isEmpty());
+    }
+
     private void resetGame() {
         gameState = new GameState();
+        stateHistory.clear();
         gameOver = false;
         selectedRow = -1;
         selectedCol = -1;
         moveHistoryArea.setText("");
         updateDifficultyButtons();
+        updateUndoButton();
         repaintBoard();
     }
 
