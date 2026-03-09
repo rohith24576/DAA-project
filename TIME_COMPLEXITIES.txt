@@ -1,0 +1,152 @@
+================================================================================
+                    CHECKERS - DAA PROJECT
+                    TIME COMPLEXITY ANALYSIS
+================================================================================
+
+Notation:
+  n = board size (8x8 = 64 cells)
+  b = branching factor (average number of legal moves per position)
+  d = search depth
+  m = number of legal moves
+  m' = opponent's legal moves per position
+  k = evaluation cost per position
+
+================================================================================
+1. GREEDY (Easy Mode)
+================================================================================
+
+Overall Algorithm:
+  O(m * m' * k)  where m = our moves, m' = opponent moves, k = evaluation cost
+
+Main Methods:
+  getBestMove()              O(m * m')  - evaluates each move with lookahead
+  evaluateWithLookahead()    O(m)       - m = opponent's legal moves
+  orderMovesByActivitySelection()  O(m log m)
+  evaluateFull()             O(n^2)     - fixed 8x8 board
+  evaluateMaterial()         O(n^2)
+  evaluatePosition()         O(n^2)
+  evaluateMobility()         O(m1 + m2) - move generation for both players
+  evaluateSafety()           O(n^2)
+  evaluateAdvancement()     O(n^2)
+  evaluateThreatBalance()   O(n^2)
+  evaluateFormation()       O(n^2)
+  evaluate()                 O(n^2)
+  computeMoveBonus()         O(1)
+
+Helper Methods:
+  Various evaluation helpers  O(n^2) or O(n) or O(1)
+
+================================================================================
+2. DIVIDE AND CONQUER (Easy Mode)
+================================================================================
+
+Overall Algorithm:
+  O(b^d)  where b = branching factor, d = depth (alpha-beta reduces effective branching)
+
+Main Methods:
+  getBestMove()              O(b^d)  - with alpha-beta reducing effective branching
+  minimax()                  O(b^d)  - with pruning
+  orderMoves()               O(m log m)
+  evaluate()                 O(n^2)
+  evaluateRecursive()        O(n^2)
+  evaluateMaterial()         O(n^2)
+  evaluatePosition()         O(n^2)
+  evaluateAdvancement()       O(n^2)
+  evaluateMobility()         O(m)
+  evaluateSafety()           O(n^2)
+  evaluateBackRow()          O(n^2)
+  evaluateCenterControl()    O(n^2)
+  evaluateVulnerability()     O(n^2)
+  evaluateByZones()          O(n^2)
+  evaluateByPieceType()      O(n^2)
+  evaluateQuadrants()        O(n^2)
+  evaluateByPhase()          O(n^2)
+  evaluateByRanks()          O(n^2)
+  evaluateSideStrength()     O(n^2)
+  evaluateByFiles()          O(n^2)
+  orderMoves()               O(m log m)
+  shouldStopDividing()       O(1)
+
+Search Depth: 3
+
+================================================================================
+3. BACKTRACKING (Medium Mode)
+================================================================================
+
+Overall Algorithm:
+  O(b^d)  where b = branching factor, d = depth
+
+Main Methods:
+  getBestMove()              O(b^d)  - with alpha-beta reducing effective branching
+  backtrackSearch()          O(b^d)  - with pruning
+  orderMoves()               O(m log m)  - implicit in sort
+  evaluate()                 O(n^2)
+  evaluateMaterial()         O(n^2)
+  evaluatePosition()         O(n^2)
+  evaluateMobility()         O(n^2)
+  evaluateVulnerability()    O(n^2)
+  evaluateAdvancement()      O(n^2)
+  evaluateThreats()          O(n^2)
+  evaluateFormation()        O(n^2)
+  evaluateConstraintSatisfaction()  O(n^2)
+  propagateVulnerabilityConstraint()  O(n^2)
+  simulateDFS()              O(b^d)
+  stateToKey()               O(n^2)  - for hash
+  shouldPrune()              O(1)
+  canPruneBranch()           O(1)
+  getNextCandidate()         O(m)
+
+Search Depth: 5
+
+================================================================================
+4. DYNAMIC PROGRAMMING (Hard Mode)
+================================================================================
+
+Overall Algorithm:
+  O(b^d) worst case; memoization dramatically reduces redundant computation
+
+Main Methods:
+  getBestMove()              O(b^d)  - with memoization cutting redundant computation
+  minimaxDP()                O(b^d)  - with cache hits reducing effective work
+  orderMoves()               O(m log m)
+  evaluateWithCache()        O(n^2)  - O(1) lookup when cached
+  evaluate()                 O(n^2)
+  hashState()                O(n^2)
+  isCached()                 O(1) per lookup
+  retrieveFromTT()           O(1)
+  storeInTT()                O(1)
+  dpRecurrence()             O(1) conceptual
+  tabulateEvaluation()       O(n^2) for state size
+  evaluateFormation()        O(n^2)
+  evaluateThreatBalance()    O(n^2)
+  tabulateEvaluation()      O(n^2) for full board
+  incrementalEvalDelta()     O(1) per piece change
+  extractPrincipalVariation()  O(d) to extract
+  aspirationWindow()         O(1)
+  getReducedDepth()          O(1)
+  zobristHash()              O(b^d') for reduced depth d'
+  optimizedEvaluation()      O(1)
+  clearTranspositionTable()  O(1)
+  trimTranspositionTable()   O(n) for n entries
+  countCaptureMoves()        O(b^d) for capture-only moves
+
+Search Depth: 8
+
+================================================================================
+SUMMARY COMPARISON
+================================================================================
+
+Algorithm              | Overall Complexity | Search Depth | Notes
+----------------------|--------------------|--------------|---------------------------
+Greedy                | O(m * m' * k)      | 1 ply        | Fastest, no tree search
+Divide and Conquer    | O(b^d)             | 3           | Alpha-beta pruning
+Backtracking          | O(b^d)             | 5           | State-space search
+Dynamic Programming   | O(b^d)             | 8           | Memoization reduces work
+
+Typical values for checkers:
+  b (branching factor)  ~ 3-8
+  d (depth)             varies by algorithm (3, 5, or 8)
+  n                     ～ 64 (8x8 board)
+  m                     ~ 4-12 legal moves per position
+
+================================================================================
